@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: widget-service
+
+application:
+  repository:
+    type: memory
