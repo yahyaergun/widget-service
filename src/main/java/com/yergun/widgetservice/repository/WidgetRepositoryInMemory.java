@@ -2,19 +2,20 @@ package com.yergun.widgetservice.repository;
 
 import com.yergun.widgetservice.model.Widget;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.stream.Collectors;
 
-//@ConditionalOnProperty(name = "application.repository.type", havingValue = "memory")
+@ConditionalOnProperty(name = "application.repository.type", havingValue = "memory")
 @Repository
 public class WidgetRepositoryInMemory implements WidgetRepository {
 
-    SortedSet<Widget> storage = new ConcurrentSkipListSet<>(Comparator.comparingInt(Widget::getZIndex));
+    SortedSet<Widget> storage = new ConcurrentSkipListSet<>(Comparator.comparingInt(Widget::getZ));
 
     @Override
     public Widget save(Widget widget) {
@@ -23,23 +24,28 @@ public class WidgetRepositoryInMemory implements WidgetRepository {
     }
 
     @Override
-    public Optional<Widget> findFirstByOrderByZIndexDesc() {
+    public Optional<Widget> findFirstByOrderByZDesc() {
         return storage.isEmpty() ? Optional.empty() : Optional.of(storage.last());
     }
 
     @Override
-    public Flux<Widget> findAllByOrderByZIndexAsc() {
-        return Flux.fromIterable(storage);
+    public Page<Widget> findByOrderByZAsc(Pageable pageable) {
+        List<Widget> list = storage.stream()
+                .limit(pageable.getPageSize())
+                .skip(pageable.getOffset())
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(list, pageable, storage.size());
     }
 
     @Override
-    public Flux<Widget> findAllByZIndexGreaterThanEqualOrderByZIndexDesc(Widget widget) {
-        return Flux.fromIterable(storage.tailSet(widget));
+    public Collection<Widget> findByZGreaterThanEqualOrderByZAsc(Widget widget) {
+        return storage.tailSet(widget);
     }
 
-    public Optional<Widget> findByZIndex(Integer zIndex) {
+    public Optional<Widget> findFirstByZ(Integer zIndex) {
         return storage.stream()
-                .filter( w -> w.getZIndex().equals(zIndex))
+                .filter(w -> w.getZ().equals(zIndex))
                 .findFirst();
     }
 
@@ -56,8 +62,8 @@ public class WidgetRepositoryInMemory implements WidgetRepository {
     }
 
     @Override
-    public boolean delete(Widget widget) {
-        return storage.remove(widget);
+    public void delete(Widget widget) {
+        storage.remove(widget);
     }
 
 

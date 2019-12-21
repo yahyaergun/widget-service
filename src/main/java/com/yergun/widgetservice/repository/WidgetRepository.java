@@ -1,22 +1,29 @@
 package com.yergun.widgetservice.repository;
 
 import com.yergun.widgetservice.model.Widget;
-import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
-import reactor.core.publisher.Flux;
+import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
-@NoRepositoryBean
+@ConditionalOnProperty(name = "application.repository.type", havingValue = "h2")
 public interface WidgetRepository extends Repository<Widget, UUID> {
 
+    // I really wanted the method signature like this
+    // so I can utilize `tailSet` method in inMemory implementation as it's amortised O(1)
+    @Query("select w from Widget w where w.z >= :#{#widget.z} order by w.z asc")
+    Collection<Widget> findByZGreaterThanEqualOrderByZAsc(Widget widget);
+    Page<Widget> findByOrderByZAsc(Pageable pageable);
     Widget save(Widget widget);
-    Flux<Widget> findAllByOrderByZIndexAsc();
-    Flux<Widget> findAllByZIndexGreaterThanEqualOrderByZIndexDesc(Widget widget);
-    Optional<Widget> findFirstByOrderByZIndexDesc();
-    Optional<Widget> findByZIndex(Integer zIndex);
+    Optional<Widget> findFirstByOrderByZDesc();
+    Optional<Widget> findFirstByZ(Integer z);
     Optional<Widget> findById(UUID id);
     boolean deleteById(UUID id);
-    boolean delete(Widget widget);
+    void delete(Widget widget);
 }

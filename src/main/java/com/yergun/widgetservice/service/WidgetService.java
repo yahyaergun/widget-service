@@ -7,13 +7,12 @@ import com.yergun.widgetservice.repository.WidgetRepository;
 import com.yergun.widgetservice.util.ObjectUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -26,7 +25,7 @@ public class WidgetService {
         widget.setId(UUID.randomUUID());
         widget.setLastUpdated(LocalDateTime.now());
 
-        if (widget.getZIndex() == null) {
+        if (widget.getZ() == null) {
             setWidgetToForeground(widget);
         } else {
             moveIfZIndexCollision(widget);
@@ -35,8 +34,8 @@ public class WidgetService {
         return widgetRepository.save(widget);
     }
 
-    public Flux<Widget> findAll() {
-        return widgetRepository.findAllByOrderByZIndexAsc();
+    public Flux<Widget> findAll(int pageCount, int size) {
+        return Flux.fromIterable(widgetRepository.findByOrderByZAsc(PageRequest.of(pageCount, size)));
     }
 
     public Widget findById(UUID id) {
@@ -66,14 +65,19 @@ public class WidgetService {
 
     private void moveIfZIndexCollision(Widget widget) {
         widgetRepository
-                .findByZIndex(widget.getZIndex())
+                .findFirstByZ(widget.getZ())
                 .ifPresent(this::moveWidgetsGreaterThanToForegroundByOne);
     }
 
     private void moveWidgetsGreaterThanToForegroundByOne(Widget widget) {
-        widgetRepository
-                .findAllByZIndexGreaterThanEqualOrderByZIndexDesc(widget)
-                .doOnNext(w -> w.setZIndex(w.getZIndex() + 1))
+//        widgetRepository.findByZGreaterThanEqualOrderByZAsc(widget)
+//                .forEach(w -> {
+//                    w.incrementZ();
+//                    w.setLastUpdated(LocalDateTime.now());
+//                    widgetRepository.save(w);
+//                });
+        Flux.fromIterable(widgetRepository.findByZGreaterThanEqualOrderByZAsc(widget))
+                .doOnNext(w -> w.setZ(w.getZ() + 1))
                 .doOnNext(w -> w.setLastUpdated(LocalDateTime.now()))
                 .doOnNext(widgetRepository::save)
                 .log()
@@ -82,8 +86,8 @@ public class WidgetService {
 
     private void setWidgetToForeground(Widget widget) {
         widgetRepository
-                .findFirstByOrderByZIndexDesc()
-                .ifPresentOrElse(w -> widget.setZIndex(w.getZIndex() + 1),
-                        () -> widget.setZIndex(0));
+                .findFirstByOrderByZDesc()
+                .ifPresentOrElse(w -> widget.setZ(w.getZ() + 1),
+                        () -> widget.setZ(0));
     }
 }

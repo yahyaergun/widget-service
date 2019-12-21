@@ -1,16 +1,15 @@
 package com.yergun.widgetservice.controller;
 
-import com.yergun.widgetservice.exception.WidgetNotFoundException;
 import com.yergun.widgetservice.model.Widget;
 import com.yergun.widgetservice.model.WidgetPatchRequest;
 import com.yergun.widgetservice.service.WidgetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Max;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -27,8 +26,9 @@ public class WidgetController {
     }
 
     @GetMapping
-    public Flux<Widget> findAll() {
-        return widgetService.findAll();
+    public Flux<Widget> findAll(@RequestParam(defaultValue = "0") int page,
+                                @RequestParam(defaultValue = "10") @Max(value = 500) int size) {
+        return widgetService.findAll(page, size);
     }
 
     @GetMapping(path = "/{id}")
