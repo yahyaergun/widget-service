@@ -70,7 +70,8 @@ public class WidgetService {
     }
 
     private void moveWidgetsGreaterThanToForegroundByOne(Widget widget) {
-        widgetRepository.findByZGreaterThanEqualOrderByZAsc(widget)
+        widgetRepository
+                .findByZGreaterThanEqualOrderByZAsc(widget)
                 .forEach(w -> {
                     w.incrementZ();
                     w.setLastUpdated(LocalDateTime.now());

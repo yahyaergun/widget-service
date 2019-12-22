@@ -19,25 +19,20 @@ public class Widget {
 
     @Id
     private UUID id;
-
     @NotNull
     private Integer x;
-
     @NotNull
     private Integer y;
-
-    private Integer z;
-
     @Min(1)
     private Integer width;
-
     @Min(1)
     private Integer height;
+    private Integer z;
     private LocalDateTime lastUpdated;
 
 
     public void incrementZ() {
-        z++;
+        this.z++;
     }
 
 }

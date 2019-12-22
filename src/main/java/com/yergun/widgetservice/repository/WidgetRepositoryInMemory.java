@@ -1,6 +1,7 @@
 package com.yergun.widgetservice.repository;
 
 import com.yergun.widgetservice.model.Widget;
+import lombok.Getter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -13,9 +14,10 @@ import java.util.stream.Collectors;
 
 @ConditionalOnProperty(name = "application.repository.type", havingValue = "memory")
 @Repository
+@Getter
 public class WidgetRepositoryInMemory implements WidgetRepository {
 
-    SortedSet<Widget> storage = new ConcurrentSkipListSet<>(Comparator.comparingInt(Widget::getZ));
+    private final SortedSet<Widget> storage = new ConcurrentSkipListSet<>(Comparator.comparingInt(Widget::getZ));
 
     @Override
     public Widget save(Widget widget) {
