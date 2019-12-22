@@ -7,10 +7,10 @@ import com.yergun.widgetservice.repository.WidgetRepository;
 import com.yergun.widgetservice.util.ObjectUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -34,8 +34,8 @@ public class WidgetService {
         return widgetRepository.save(widget);
     }
 
-    public Flux<Widget> findAll(int pageCount, int size) {
-        return Flux.fromIterable(widgetRepository.findByOrderByZAsc(PageRequest.of(pageCount, size)));
+    public Page<Widget> findAll(int pageCount, int size) {
+        return widgetRepository.findByOrderByZAsc(PageRequest.of(pageCount, size, Sort.by(Sort.Direction.ASC, "z")));
     }
 
     public Widget findById(UUID id) {
@@ -70,18 +70,12 @@ public class WidgetService {
     }
 
     private void moveWidgetsGreaterThanToForegroundByOne(Widget widget) {
-//        widgetRepository.findByZGreaterThanEqualOrderByZAsc(widget)
-//                .forEach(w -> {
-//                    w.incrementZ();
-//                    w.setLastUpdated(LocalDateTime.now());
-//                    widgetRepository.save(w);
-//                });
-        Flux.fromIterable(widgetRepository.findByZGreaterThanEqualOrderByZAsc(widget))
-                .doOnNext(w -> w.setZ(w.getZ() + 1))
-                .doOnNext(w -> w.setLastUpdated(LocalDateTime.now()))
-                .doOnNext(widgetRepository::save)
-                .log()
-                .subscribe();
+        widgetRepository.findByZGreaterThanEqualOrderByZAsc(widget)
+                .forEach(w -> {
+                    w.incrementZ();
+                    w.setLastUpdated(LocalDateTime.now());
+                    widgetRepository.save(w);
+                });
     }
 
     private void setWidgetToForeground(Widget widget) {

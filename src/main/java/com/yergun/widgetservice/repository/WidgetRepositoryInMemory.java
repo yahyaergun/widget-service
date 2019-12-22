@@ -31,8 +31,8 @@ public class WidgetRepositoryInMemory implements WidgetRepository {
     @Override
     public Page<Widget> findByOrderByZAsc(Pageable pageable) {
         List<Widget> list = storage.stream()
-                .limit(pageable.getPageSize())
                 .skip(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .collect(Collectors.toList());
 
         return new PageImpl<>(list, pageable, storage.size());
