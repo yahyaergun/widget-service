@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: widget-service
+
+# will use h2 for tests as default since there is no datasource definition here.
+
+application:
+  repository:
+        type: memory
+#    type: db
