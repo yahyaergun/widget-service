@@ -143,36 +143,4 @@ class WidgetServiceTest {
         assertThatExceptionOfType(WidgetNotFoundException.class)
                 .isThrownBy(() -> widgetService.deleteById(UUID.randomUUID()));
     }
-
-    @Test
-    void update_whenNotFound_ThrowsWidgetNotFoundException() {
-        when(widgetRepository.findById(any())).thenReturn(Optional.empty());
-
-        assertThatExceptionOfType(WidgetNotFoundException.class)
-                .isThrownBy(() -> widgetService.update(UUID.randomUUID(), new WidgetPatchRequest()));
-    }
-
-    @Test
-    void update_whenCalledWithHeight_updatesOnlyHeight() {
-        UUID id = UUID.randomUUID();
-        Widget widget = Widget.builder().id(id)
-                .x(10).y(10).width(10).height(10).z(0).build();
-
-        WidgetPatchRequest wpr = new WidgetPatchRequest();
-        wpr.setHeight(666);
-
-        when(widgetRepository.findById(id)).thenReturn(Optional.of(widget));
-        when(widgetRepository.save(any())).thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
-
-        Widget updated = widgetService.update(id, wpr);
-
-        assertThat(updated.getHeight()).isEqualTo(wpr.getHeight());
-        assertThat(updated.getWidth()).isEqualTo(10);
-        assertThat(updated.getX()).isEqualTo(10);
-        assertThat(updated.getY()).isEqualTo(10);
-        assertThat(updated.getZ()).isEqualTo(0);
-    }
-
-
-
 }
