@@ -124,6 +124,7 @@ class WidgetRepositoryInMemoryTest {
 
         repository.getStorage().add(w);
 
+        repository.deleteById(id);
         assertThat(repository.getStorage().size()).isEqualTo(0);
     }
 
