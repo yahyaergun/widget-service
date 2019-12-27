@@ -23,6 +23,6 @@ public interface WidgetRepository extends Repository<Widget, UUID>, CustomizedWi
     Optional<Widget> findFirstByOrderByZDesc();
     Optional<Widget> findFirstByZ(Integer z);
     Optional<Widget> findById(UUID id);
-    boolean deleteById(UUID id);
+    void deleteById(UUID id);
     void delete(Widget widget);
 }

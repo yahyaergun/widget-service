@@ -97,10 +97,13 @@ public class WidgetRepositoryInMemory implements WidgetRepository {
     }
 
     @Override
-    public boolean deleteById(UUID id) {
+    public void deleteById(UUID id) {
         lock.writeLock().lock();
         try {
-            return storage.removeIf(w -> w.getId().equals(id));
+            boolean deleted = storage.removeIf(w -> w.getId().equals(id));
+            if (!deleted) {
+                throw new WidgetNotFoundException(id);
+            }
         } finally {
             lock.writeLock().unlock();
         }

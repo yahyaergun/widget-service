@@ -117,26 +117,26 @@ class WidgetRepositoryInMemoryTest {
     }
 
     @Test
-    void deleteById_whenFound_thenDeletesWidgetAndReturnsTrue() {
+    void deleteById_whenFound_thenDeletesWidget() {
         UUID id = UUID.randomUUID();
         Widget w = new Widget(id, 10, 10, 10,
                 10, 10, LocalDateTime.now());
 
         repository.getStorage().add(w);
 
-        assertThat(repository.deleteById(id)).isEqualTo(true);
         assertThat(repository.getStorage().size()).isEqualTo(0);
     }
 
     @Test
-    void deleteById_whenNotFound_returnsFalse() {
+    void deleteById_whenNotFound_throwsWidgetNotFoundException() {
         UUID id = UUID.randomUUID();
         Widget w = new Widget(id, 10, 10, 10,
                 10, 10, LocalDateTime.now());
 
         repository.getStorage().add(w);
 
-        assertThat(repository.deleteById(UUID.randomUUID())).isEqualTo(false);
+        assertThatExceptionOfType(WidgetNotFoundException.class)
+                .isThrownBy(() -> repository.update(UUID.randomUUID(), new WidgetPatchRequest()));
         assertThat(repository.getStorage().size()).isEqualTo(1);
     }
 

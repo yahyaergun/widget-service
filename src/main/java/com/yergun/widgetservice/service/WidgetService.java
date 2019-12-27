@@ -44,10 +44,7 @@ public class WidgetService {
     }
 
     public void deleteById(UUID id) {
-        boolean deleted = widgetRepository.deleteById(id);
-        if (!deleted) {
-            throw new WidgetNotFoundException(id);
-        }
+        widgetRepository.deleteById(id);
     }
 
     @Transactional(isolation= Isolation.READ_COMMITTED)

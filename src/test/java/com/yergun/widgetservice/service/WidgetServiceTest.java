@@ -135,12 +135,4 @@ class WidgetServiceTest {
         assertThatExceptionOfType(WidgetNotFoundException.class)
                 .isThrownBy(() -> widgetService.findById(UUID.randomUUID()));
     }
-
-    @Test
-    void delete_whenNotFound_ThrowsWidgetNotFoundException() {
-        when(widgetRepository.deleteById(any())).thenReturn(false);
-
-        assertThatExceptionOfType(WidgetNotFoundException.class)
-                .isThrownBy(() -> widgetService.deleteById(UUID.randomUUID()));
-    }
 }

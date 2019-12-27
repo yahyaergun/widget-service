@@ -4,5 +4,5 @@ spring:
 
 application:
   repository:
-    type: memory
-#    type: db
+#    type: memory
+    type: db
