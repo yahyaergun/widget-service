@@ -11,6 +11,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -21,14 +23,13 @@ public class WidgetService {
 
     private final WidgetRepository widgetRepository;
 
+    @Transactional(isolation= Isolation.READ_COMMITTED)
     public Widget create(Widget widget) {
         widget.setId(UUID.randomUUID());
         widget.setLastUpdated(LocalDateTime.now());
 
         if (widget.getZ() == null) {
             setWidgetToForeground(widget);
-        } else {
-            moveIfZIndexCollision(widget);
         }
 
         return widgetRepository.save(widget);
@@ -49,34 +50,9 @@ public class WidgetService {
         }
     }
 
+    @Transactional(isolation= Isolation.READ_COMMITTED)
     public Widget update(UUID id, WidgetPatchRequest widgetPatchRequest) {
-        return widgetRepository.findById(id)
-                .map(w -> applyPatchAndSave(widgetPatchRequest, w))
-                .orElseThrow(() -> new WidgetNotFoundException(id));
-    }
-
-    private Widget applyPatchAndSave(WidgetPatchRequest widgetPatchRequest, Widget widget) {
-        widgetRepository.delete(widget);
-        BeanUtils.copyProperties(widgetPatchRequest, widget, ObjectUtils.getNullPropertyNames(widgetPatchRequest));
-        widget.setLastUpdated(LocalDateTime.now());
-        moveIfZIndexCollision(widget);
-        return widgetRepository.save(widget);
-    }
-
-    private void moveIfZIndexCollision(Widget widget) {
-        widgetRepository
-                .findFirstByZ(widget.getZ())
-                .ifPresent(this::moveWidgetsGreaterThanToForegroundByOne);
-    }
-
-    private void moveWidgetsGreaterThanToForegroundByOne(Widget widget) {
-        widgetRepository
-                .findByZGreaterThanEqualOrderByZAsc(widget)
-                .forEach(w -> {
-                    w.incrementZ();
-                    w.setLastUpdated(LocalDateTime.now());
-                    widgetRepository.save(w);
-                });
+        return widgetRepository.update(id, widgetPatchRequest);
     }
 
     private void setWidgetToForeground(Widget widget) {

@@ -48,7 +48,7 @@ public interface TestUtils {
     static void fillWidgets(int count, WidgetRepository repository) {
         for (int i = 0; i < count; i++) {
             repository.save(new Widget(UUID.randomUUID(),
-                    10, 10, i,
+                    10, 10, 10,
                     10, i, LocalDateTime.now()));
         }
     }

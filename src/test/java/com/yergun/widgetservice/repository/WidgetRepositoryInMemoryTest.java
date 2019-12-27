@@ -1,6 +1,8 @@
 package com.yergun.widgetservice.repository;
 
+import com.yergun.widgetservice.exception.WidgetNotFoundException;
 import com.yergun.widgetservice.model.Widget;
+import com.yergun.widgetservice.model.WidgetPatchRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
@@ -12,6 +14,7 @@ import java.util.UUID;
 
 import static com.yergun.widgetservice.TestUtils.fillWidgets;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class WidgetRepositoryInMemoryTest {
 
@@ -159,6 +162,55 @@ class WidgetRepositoryInMemoryTest {
 
         repository.delete(w);
         assertThat(repository.getStorage().size()).isEqualTo(0);
+    }
+
+    @Test
+    void update_whenNotFound_ThrowsWidgetNotFoundException() {
+        assertThatExceptionOfType(WidgetNotFoundException.class)
+                .isThrownBy(() -> repository.update(UUID.randomUUID(), new WidgetPatchRequest()));
+    }
+
+    @Test
+    void update_whenFoundAndZCollides_thenUpdatesWidgetAndMoveTheRest() {
+        repository.getStorage().add(new Widget(UUID.randomUUID(), 1, 1, 1, 1, 0, LocalDateTime.now()));
+        repository.getStorage().add(new Widget(UUID.randomUUID(), 1, 1, 1, 1, 1, LocalDateTime.now()));
+        repository.getStorage().add(new Widget(UUID.randomUUID(), 1, 1, 1, 1, 2, LocalDateTime.now()));
+        repository.getStorage().add(new Widget(UUID.randomUUID(), 1, 1, 1, 1, 3, LocalDateTime.now()));
+
+        UUID id = UUID.randomUUID();
+        Widget w = new Widget(id, 10, 10, 10,
+                10, 4, LocalDateTime.now());
+        repository.getStorage().add(w);
+
+        repository.getStorage().add(new Widget(UUID.randomUUID(), 1, 1, 1, 1, 5, LocalDateTime.now()));
+
+
+        WidgetPatchRequest wpr = new WidgetPatchRequest();
+        wpr.setZ(1);
+        Widget updatedWidget = repository.update(id, wpr);
+
+        assertThat(updatedWidget.getZ()).isEqualTo(1);
+        assertThat(repository.getStorage().last().getZ()).isEqualTo(6);
+    }
+
+    @Test
+    void update_whenFound_thenUpdatesWidgetWithNonNulls() {
+        UUID id = UUID.randomUUID();
+        Widget w = new Widget(id, 10, 10, 10,
+                10, 10, LocalDateTime.now());
+
+        repository.getStorage().add(w);
+
+        WidgetPatchRequest wpr = new WidgetPatchRequest();
+        wpr.setX(111);
+        Widget updatedWidget = repository.update(id, wpr);
+
+        assertThat(updatedWidget.getX()).isEqualTo(111);
+        assertThat(updatedWidget.getY()).isEqualTo(w.getY());
+        assertThat(updatedWidget.getWidth()).isEqualTo(w.getWidth());
+        assertThat(updatedWidget.getHeight()).isEqualTo(w.getHeight());
+        assertThat(updatedWidget.getZ()).isEqualTo(w.getZ());
+        assertThat(updatedWidget.getLastUpdated()).isAfterOrEqualTo(w.getLastUpdated());
     }
 
 
